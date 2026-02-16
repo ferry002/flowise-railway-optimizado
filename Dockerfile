@@ -1,7 +1,7 @@
-# Usar Node.js 20 LTS
-FROM node:20-slim
+# Usar Node.js 18 exacto (no alpine, no slim)
+FROM node:18-bullseye
 
-# Instalar dependencias del sistema necesarias
+# Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
@@ -10,28 +10,24 @@ RUN apt-get update && apt-get install -y \
     chromium \
     && rm -rf /var/lib/apt/lists/*
 
-# Configurar Puppeteer para usar Chromium del sistema
+# Configurar Puppeteer
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-# Crear directorio de trabajo
 WORKDIR /app
 
-# Copiar package.json primero (para cachear dependencias)
+# Copiar package.json
 COPY package.json .
 
-# Instalar dependencias
-RUN npm install
+# Limpiar cache de npm y forzar instalación limpia
+RUN npm cache clean --force && \
+    npm install --no-package-lock
 
-# Copiar el resto (aunque solo tenemos package.json)
-COPY . .
-
-# Crear directorio de datos con permisos
+# Crear directorios con permisos
 RUN mkdir -p /root/.flowise/logs && \
     chmod -R 777 /root/.flowise
 
-# Puerto
 EXPOSE 3000
 
-# Iniciar Flowise
-CMD ["npm", "start"]
+# Iniciar con opciones de Node.js para mayor compatibilidad
+CMD ["node", "--max-old-space-size=2048", "/usr/local/bin/flowise", "start"]
