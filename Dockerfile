@@ -9,7 +9,7 @@ RUN apk add --no-cache python3 make g++ git
 
 # Instalar Flowise globalmente
 RUN npm install -g flowise
-
+npm cache clean --force
 # Etapa 2: Imagen final
 FROM node:20-alpine
 
