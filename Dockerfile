@@ -1,5 +1,5 @@
 # Etapa 1: Construcción
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Variable para evitar descargar Chromium (reduce tamaño)
 ENV PUPPETEER_SKIP_DOWNLOAD=true
@@ -11,7 +11,7 @@ RUN apk add --no-cache python3 make g++ git
 RUN npm install -g flowise
 
 # Etapa 2: Imagen final
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Instalar SOLO dependencias runtime necesarias
 RUN apk add --no-cache \
