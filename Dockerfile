@@ -1,43 +1,37 @@
-# Etapa 1: Construcción
-FROM node:20-alpine AS builder
+# Usar Node.js 20 LTS
+FROM node:20-slim
 
-# Variable para evitar descargar Chromium (reduce tamaño)
-ENV PUPPETEER_SKIP_DOWNLOAD=true
-
-# Instalar dependencias de compilación necesarias
-RUN apk add --no-cache python3 make g++ git
-
-# Instalar Flowise globalmente
-RUN npm install -g flowise
-npm cache clean --force
-# Etapa 2: Imagen final
-FROM node:20-alpine
-
-# Instalar SOLO dependencias runtime necesarias
-RUN apk add --no-cache \
-    chromium \
-    git \
+# Instalar dependencias del sistema necesarias
+RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
-    cairo-dev \
-    pango-dev \
-    && rm -rf /var/cache/apk/*
+    git \
+    chromium \
+    && rm -rf /var/lib/apt/lists/*
 
 # Configurar Puppeteer para usar Chromium del sistema
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-# Copiar Flowise desde la etapa de construcción
-COPY --from=builder /usr/local/lib/node_modules /usr/local/lib/node_modules
-COPY --from=builder /usr/local/bin /usr/local/bin
+# Crear directorio de trabajo
+WORKDIR /app
 
-# --- SOLUCIÓN: Crear carpetas con permisos correctos ---
-# Crear la estructura de directorios necesaria
+# Copiar package.json primero (para cachear dependencias)
+COPY package.json .
+
+# Instalar dependencias
+RUN npm install
+
+# Copiar el resto (aunque solo tenemos package.json)
+COPY . .
+
+# Crear directorio de datos con permisos
 RUN mkdir -p /root/.flowise/logs && \
-    chmod -R 755 /root/.flowise
+    chmod -R 777 /root/.flowise
 
-# Puerto por defecto
+# Puerto
 EXPOSE 3000
 
-# Comando de inicio
-CMD ["flowise", "start"]
+# Iniciar Flowise
+CMD ["npm", "start"]
