@@ -1,12 +1,11 @@
 {
   "name": "flowise-railway",
   "version": "1.0.0",
-  "description": "Flowise optimized for Railway",
-  "main": "index.js",
   "scripts": {
     "start": "flowise start"
   },
   "dependencies": {
-    "flowise": "latest"
+    "flowise": "1.8.2",
+    "undici": "5.28.4"
   }
 }
